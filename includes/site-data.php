@@ -19,13 +19,13 @@ class BP_SMP_Site_Data {
 		$defaults = apply_filters( 'bp_smp_default_site_data', array(
 			'twitter' => array(
 				'name' 		=> __( 'Twitter', 'bp-smp' ),
-				'url_pattern'   => 'https://twitter.com/***/',
+				'url_pattern'   => 'http://twitter.com/***/',
 				'callback'	=> array( &$this, 'twitter_cb' ),
 				'admin_desc'	=> __( 'Accepts a Twitter handle with or without the @ sign, or the full URL to a Twitter profile', 'bp-smp' )
 			),
 			'googleplus' => array(
 				'name' 		=> __( 'Google Plus', 'bp-smp' ),
-				'url_pattern'   => 'https://plus.google.com/+***/',
+				'url_pattern'   => 'http://plus.google.com/+***/',
 				'callback'	=> array( &$this, 'google_plus_cb' ),
 				'admin_desc'	=> __( 'Accepts a Google Plus handle with or without the + sign, or the full URL to a Google Plus profile', 'bp-smp' )
 			),
@@ -51,55 +51,55 @@ class BP_SMP_Site_Data {
 			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
-				'url_pattern'	=> 'https://youtube.com/user/***',
+				//'url_pattern'	=> 'http://youtube.com/user/***',
 				'callback'	=> array( &$this, 'youtube_cb' ),
 				'admin_desc'	=> __( 'Accepts a YouTube user name, or the full URL to a YouTube user page', 'bp-smp' )
 			),
 			'linkedin' => array(
 				'name'		=>  __( 'LinkedIn', 'bp-smp' ),
-				'url_pattern'	=> 'https://www.linkedin.com/in/***/',
+				'url_pattern'	=> 'http://www.linkedin.com/in/***/',
 				'callback'	=> array( &$this, 'linkedin_cb' ),
-				'admin_desc'	=> __( 'Accepts a LinkedIn profile URL, or a username that can be translated into a custom profile URL (such as https://www.linkedin.com/in/username from "username")', 'bp-smp' )
+				'admin_desc'	=> __( 'Accepts a LinkedIn profile URL, or a username that can be translated into a custom profile URL (such as http://www.linkedin.com/in/username from "username")', 'bp-smp' )
 			),
 			'delicious' => array(
 				'name'		=> __( 'Delicious', 'bp-smp' ),
-				'url_pattern'	=> 'https://delicious.com/***/',
+				'url_pattern'	=> 'http://delicious.com/***/',
 				'callback'	=> array( &$this, 'delicious_cb' ),
 				'admin_desc'	=> __( 'Accepts a Delicious profile URL, or a username', 'bp-smp' )
 			),
 			'flickr' => array(
 				'name'		=> __( 'Flickr', 'bp-smp' ),
-				'url_pattern'	=> 'https://www.flickr.com/photos/***',
+				'url_pattern'	=> 'http://www.flickr.com/photos/***',
 				'callback'	=> array( &$this, 'flickr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Flickr username, or the full URL path to a Flickr user page.', 'bp-smp' )
 			),
 			'pinterest' => array(
 				'name'		=> __( 'Pinterest', 'bp-smp' ),
-				'url_pattern'	=> 'https://www.pinterest.com/***',
+				'url_pattern'	=> 'http://www.pinterest.com/***',
 				'callback'	=> array( &$this, 'pinterest_cb' ),
 				'admin_desc'	=> __( 'Accepts a Pinterest username, or the full URL path to a Pinterest user page.', 'bp-smp' )
 			),
 			'lastfm' => array(
 				'name'		=> __( 'last.fm', 'bp-smp' ),
-				'url_pattern'	=> 'https://www.last.fm/user/***',
+				'url_pattern'	=> 'http://www.last.fm/user/***',
 				'callback'	=> array( &$this, 'lastfm_cb' ),
 				'admin_desc'	=> __( 'Accepts a last.fm username, or the full URL path to a last.fm user page.', 'bp-smp' )
 			),
 			'instagram' => array(
 				'name' 		=> __( 'Instagram', 'bp-smp' ),
-				'url_pattern'   => 'https://instagram.com/***/',
+				'url_pattern'   => 'http://instagram.com/***/',
 				'callback'	=> array( &$this, 'instagram_cb' ),
 				'admin_desc'	=> __( 'Accepts an Instagram username, or the full URL to an Instagram profile', 'bp-smp' )
 			),
 			'tumblr' => array(
 				'name'		=> __( 'Tumblr', 'bp-smp' ),
-				'url_pattern'	=> 'https://***.tumblr.com',
+				'url_pattern'	=> 'http://***.tumblr.com',
 				'callback'	=> array( &$this, 'tumblr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Tumblr username, or the full URL path to a Tumblr blog.', 'bp-smp' )
 			),
 			'vine' => array(
 				'name'		=> __( 'Vine', 'bp-smp' ),
-				'url_pattern'	=> 'https://vine.co/***',
+				'url_pattern'	=> 'http://vine.co/***',
 				'callback'	=> array( &$this, 'vine_cb' ),
 				'admin_desc'	=> __( 'Accepts a Vine username, or the full URL path to a Vine user page.', 'bp-smp' )
 			),
@@ -250,6 +250,8 @@ class BP_SMP_Site_Data {
 	 * This one is customized a bit, because of issues like @ signs and hashbangs
 	 */
 	function twitter_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'twitter', $user_data->value );
+		exit();
 		$saved_value = $user_data->value;
 		$url_pattern = $field_data['url_pattern'];
 
@@ -284,6 +286,8 @@ class BP_SMP_Site_Data {
 	 * This one is customized a bit, because of issues like + signs
 	 */
 	function google_plus_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'google-plus', $user_data->value );
+
 		$saved_value = $user_data->value;
 		$url_pattern = $field_data['url_pattern'];
 
@@ -341,17 +345,18 @@ class BP_SMP_Site_Data {
 	 * Callback for YouTube
 	 */
 	function youtube_cb( $user_data, $field_data ) {
-		$return = $this->standard_data_with_url_callback( 'youtube', $user_data->value, $field_data['url_pattern'] );
+		return $this->standard_data_without_url_callback( 'youtube', $user_data->value );
 
-		$return['title'] = sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $return['text'] );
-
-		return $return;
+		//$return = $this->standard_data_with_url_callback( 'youtube', $user_data->value, $field_data['url_pattern'] );
+		//$return['title'] = sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $return['text'] );
+		//return $return;
 	}
 
 	/**
 	 * LinkedIn
 	 */
 	function linkedin_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'linkedin', $user_data->value );
 		return $this->standard_data_with_url_callback( 'linkedin', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -359,6 +364,7 @@ class BP_SMP_Site_Data {
 	 * Delicious
 	 */
 	function delicious_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'delicious', $user_data->value );
 		return $this->standard_data_with_url_callback( 'delicious', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -366,6 +372,7 @@ class BP_SMP_Site_Data {
 	 * Flickr
 	 */
 	function flickr_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'flickr', $user_data->value );
 		return $this->standard_data_with_url_callback( 'flickr', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -373,6 +380,7 @@ class BP_SMP_Site_Data {
 	 * Pinterest
 	 */
 	function pinterest_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'pinterest', $user_data->value );
 		return $this->standard_data_with_url_callback( 'pinterest', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -387,6 +395,7 @@ class BP_SMP_Site_Data {
 	 * Instagram
 	 */
 	function instagram_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'instagram', $user_data->value );
 		return $this->standard_data_with_url_callback( 'instagram', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -394,6 +403,7 @@ class BP_SMP_Site_Data {
 	 * Tumblr
 	 */
 	function tumblr_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'tumblr', $user_data->value );
 		return $this->standard_data_with_url_callback( 'tumblr', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -401,6 +411,7 @@ class BP_SMP_Site_Data {
 	 * Vine
 	 */
 	function vine_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'vine', $user_data->value );
 		return $this->standard_data_with_url_callback( 'vine', $user_data->value, $field_data['url_pattern'] );
 	}
 }

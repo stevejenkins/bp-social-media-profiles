@@ -418,7 +418,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 			}
 
 			if ( !empty( $smp_data['url'] ) ) {
-				$html = '<a href="' . $smp_data['url'] . '" title="' . $smp_data['title'] . '">' . $content . '</a>';
+				$html = '<a target="_blank" href="' . $smp_data['url'] . '" title="' . $smp_data['title'] . '">' . $content . '</a>';
 			} else {
 				$html = $content;
 			}
