@@ -1,8 +1,9 @@
 <?php
 
+
 class BP_Social_Media_Profiles extends BP_Component {
 	/**
-	 * The available SMP site data
+	 * The available SMP site data, dude
 	 */
 	var $smp_site_data;
 
@@ -432,10 +433,12 @@ class BP_Social_Media_Profiles extends BP_Component {
 			if ( !empty( $smp_data['url'] ) ) {
 				$html = '<a href="' . $smp_data['url'] . '" target="_blank" title="' . $smp_data['title'] . '">' . $content . '</a>';
 			} else {
+				//$html = str_replace("href=","target='_blank' href=",$content);
 				$html = $content;
 			}
 		}
 
+	    //$html = str_replace("href=","target='_blank' href=",$html);
 		return apply_filters( 'bp_smp_create_field_html', $html, $smp_data );
 	}
 
@@ -554,6 +557,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 		}
 
 		$html .= '</div>';
+                $html = str_replace("href="," target='_blank' href=",$html);
 		return apply_filters( 'bp_smp_display_markup', $html );
 	}
 
