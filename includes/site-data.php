@@ -23,12 +23,6 @@ class BP_SMP_Site_Data {
 				'callback'	=> array( &$this, 'twitter_cb' ),
 				'admin_desc'	=> __( 'Accepts a Twitter handle with or without the @ sign, or the full URL to a Twitter profile', 'bp-smp' )
 			),
-			'googleplus' => array(
-				'name' 		=> __( 'Google Plus', 'bp-smp' ),
-				'url_pattern'   => 'http://plus.google.com/+***/',
-				'callback'	=> array( &$this, 'google_plus_cb' ),
-				'admin_desc'	=> __( 'Accepts a Google Plus handle with or without the + sign, or the full URL to a Google Plus profile', 'bp-smp' )
-			),
 			'facebook' => array(
 				'name'		=> __( 'Facebook', 'bp-smp' ),
 				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' ),
@@ -46,12 +40,13 @@ class BP_SMP_Site_Data {
 			),
 			'github' => array(
 				'name'		=> __( 'Github', 'bp-smp' ),
-				'admin_desc'	=> __( 'Accepts the URL to a Github user profile', 'bp-smp' ),
-				'callback'	=> array( &$this, 'github_cb' )
+				'url_pattern'	=> 'http://github.com/***',
+				'callback'	=> array( &$this, 'github_cb' ),
+				'admin_desc'	=> __( 'Accepts a Github user name, or the full URL to a Github user profile', 'bp-smp' )
 			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
-				//'url_pattern'	=> 'http://youtube.com/user/***',
+				'url_pattern'	=> 'http://youtube.com/user/***',
 				'callback'	=> array( &$this, 'youtube_cb' ),
 				'admin_desc'	=> __( 'Accepts a YouTube user name, or the full URL to a YouTube user page', 'bp-smp' )
 			),
@@ -72,37 +67,7 @@ class BP_SMP_Site_Data {
 				'url_pattern'	=> 'http://www.flickr.com/photos/***',
 				'callback'	=> array( &$this, 'flickr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Flickr username, or the full URL path to a Flickr user page.', 'bp-smp' )
-			),
-			'pinterest' => array(
-				'name'		=> __( 'Pinterest', 'bp-smp' ),
-				'url_pattern'	=> 'http://www.pinterest.com/***',
-				'callback'	=> array( &$this, 'pinterest_cb' ),
-				'admin_desc'	=> __( 'Accepts a Pinterest username, or the full URL path to a Pinterest user page.', 'bp-smp' )
-			),
-			'lastfm' => array(
-				'name'		=> __( 'last.fm', 'bp-smp' ),
-				'url_pattern'	=> 'http://www.last.fm/user/***',
-				'callback'	=> array( &$this, 'lastfm_cb' ),
-				'admin_desc'	=> __( 'Accepts a last.fm username, or the full URL path to a last.fm user page.', 'bp-smp' )
-			),
-			'instagram' => array(
-				'name' 		=> __( 'Instagram', 'bp-smp' ),
-				'url_pattern'   => 'http://instagram.com/***/',
-				'callback'	=> array( &$this, 'instagram_cb' ),
-				'admin_desc'	=> __( 'Accepts an Instagram username, or the full URL to an Instagram profile', 'bp-smp' )
-			),
-			'tumblr' => array(
-				'name'		=> __( 'Tumblr', 'bp-smp' ),
-				'url_pattern'	=> 'http://***.tumblr.com',
-				'callback'	=> array( &$this, 'tumblr_cb' ),
-				'admin_desc'	=> __( 'Accepts a Tumblr username, or the full URL path to a Tumblr blog.', 'bp-smp' )
-			),
-			'vine' => array(
-				'name'		=> __( 'Vine', 'bp-smp' ),
-				'url_pattern'	=> 'http://vine.co/***',
-				'callback'	=> array( &$this, 'vine_cb' ),
-				'admin_desc'	=> __( 'Accepts a Vine username, or the full URL path to a Vine user page.', 'bp-smp' )
-			),
+			)
 		) );
 
 		// Todo: allow merges from saved custom sites
@@ -135,6 +100,13 @@ class BP_SMP_Site_Data {
 		$username = false;
 
 		$wcpos = strpos( $url_pattern, '***' );
+
+		// If the user didn't include the http://, but the URL pattern calls for it, let's add it for them
+		// if this wasn't a URL and was just a username, that shouldn't affect the result
+		if ( 0 !== strpos( $url_pattern, 'http' ) && 0 == strpos( $saved_value, 'http' ) ) {
+			$saved_value = 'http://' . $saved_value;
+		}
+
 		if ( false !== $wcpos ) {
 			$url_pattern = trailingslashit( $url_pattern );
 			$maybe_url   = trailingslashit( $saved_value );
@@ -143,9 +115,12 @@ class BP_SMP_Site_Data {
 			$url_pattern = str_replace( 'https:', 'http:', $url_pattern );
 			$maybe_url   = str_replace( 'https:', 'http:', $maybe_url );
 
+			// Standardize www. v no www.
+			$url_pattern = str_replace( 'www.', '', $url_pattern );
+			$maybe_url   = str_replace( 'www.', '', $maybe_url );
+
 			$pattern_before = substr( $url_pattern, 0, $wcpos );
 			$pattern_after  = substr( $url_pattern, $wcpos + 3 );
-
 			// Try to strip out the 'before' and 'after' parts of the URL from the
 			// user-provided data, and see if you're left with anything.
 			if ( false !== strpos( $maybe_url, $pattern_before ) && ( !$pattern_after || false !== strpos( $maybe_url, $pattern_after ) ) ) {
@@ -157,6 +132,11 @@ class BP_SMP_Site_Data {
 
 				if ( false !== $pa_pos ) {
 					$username = substr_replace( $username, '', $pa_pos, strlen( $pattern_after ) );
+				}
+
+				// This way, if the user includes the http:// in their input, we make sure it doesn't added to the alt text for the image
+				if ( 0 !== strpos( $username, 'http:' ) ) {
+					$username = str_replace( 'http://', '', $username );
 				}
 			}
 		}
@@ -179,12 +159,14 @@ class BP_SMP_Site_Data {
 		// First, assume the user-provided value is a URL, and try to get a username
 		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
 			$url 	  = $saved_value;
+			if ( 0 === strpos( $url, 'http' ) ) {
+				$url = 'http://' . $url;
+			}
 		} else {
 			// Entered value is not a URL, so it must be a username
 			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
 			$username = $saved_value;
 		}
-
 		$return = array(
 			'url' 	=> $url,
 			'icon'	=> $this->get_icon_url_from_site_name( $site ),
@@ -250,8 +232,6 @@ class BP_SMP_Site_Data {
 	 * This one is customized a bit, because of issues like @ signs and hashbangs
 	 */
 	function twitter_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'twitter', $user_data->value );
-		exit();
 		$saved_value = $user_data->value;
 		$url_pattern = $field_data['url_pattern'];
 
@@ -275,39 +255,6 @@ class BP_SMP_Site_Data {
 			'icon'	=> $this->get_icon_url_from_site_name( 'twitter' ),
 			'text'	=> $username,
 			'title'	=> sprintf( __( '%s on Twitter', 'bp-smp' ), $username ),
-		);
-
-		return $return;
-	}
-
-	/**
-	 * Callback for Google Plus
-	 *
-	 * This one is customized a bit, because of issues like + signs
-	 */
-	function google_plus_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'google-plus', $user_data->value );
-
-		$saved_value = $user_data->value;
-		$url_pattern = $field_data['url_pattern'];
-
-		// First, assume the user-provided value is a URL, and try to get a username
-		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
-			$url 	  = $saved_value;
-
-			// Account for plus-signs
-			$username = str_replace( '+', '', $username );
-		} else {
-			// Entered value is not a URL, so it must be a username
-			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
-			$username = $saved_value;
-		}
-
-		$return = array(
-			'url' 	=> $url,
-			'icon'	=> $this->get_icon_url_from_site_name( 'google-plus' ),
-			'text'	=> $username,
-			'title'	=> sprintf( __( '%s on Google Plus', 'bp-smp' ), $username ),
 		);
 
 		return $return;
@@ -338,25 +285,28 @@ class BP_SMP_Site_Data {
 	 * Github
 	 */
 	function github_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'github', $user_data->value );
+		$return = $this->standard_data_with_url_callback( 'github', $user_data->value, $field_data['url_pattern'] );
+
+		$return['title'] = sprintf( __( '%s\'s Github profile', 'bp-smp' ), $return['text'] );
+
+		return $return;
 	}
 
 	/**
 	 * Callback for YouTube
 	 */
 	function youtube_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'youtube', $user_data->value );
+		$return = $this->standard_data_with_url_callback( 'youtube', $user_data->value, $field_data['url_pattern'] );
 
-		//$return = $this->standard_data_with_url_callback( 'youtube', $user_data->value, $field_data['url_pattern'] );
-		//$return['title'] = sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $return['text'] );
-		//return $return;
+		$return['title'] = sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $return['text'] );
+
+		return $return;
 	}
 
 	/**
 	 * LinkedIn
 	 */
 	function linkedin_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'linkedin', $user_data->value );
 		return $this->standard_data_with_url_callback( 'linkedin', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -364,7 +314,6 @@ class BP_SMP_Site_Data {
 	 * Delicious
 	 */
 	function delicious_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'delicious', $user_data->value );
 		return $this->standard_data_with_url_callback( 'delicious', $user_data->value, $field_data['url_pattern'] );
 	}
 
@@ -372,46 +321,6 @@ class BP_SMP_Site_Data {
 	 * Flickr
 	 */
 	function flickr_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'flickr', $user_data->value );
 		return $this->standard_data_with_url_callback( 'flickr', $user_data->value, $field_data['url_pattern'] );
-	}
-
-	/**
-	 * Pinterest
-	 */
-	function pinterest_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'pinterest', $user_data->value );
-		return $this->standard_data_with_url_callback( 'pinterest', $user_data->value, $field_data['url_pattern'] );
-	}
-
-	/**
-	 * last.fm
-	 */
-	function lastfm_cb( $user_data, $field_data ) {
-		return $this->standard_data_with_url_callback( 'lastfm', $user_data->value, $field_data['url_pattern'] );
-	}
-
-	/**
-	 * Instagram
-	 */
-	function instagram_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'instagram', $user_data->value );
-		return $this->standard_data_with_url_callback( 'instagram', $user_data->value, $field_data['url_pattern'] );
-	}
-
-	/**
-	 * Tumblr
-	 */
-	function tumblr_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'tumblr', $user_data->value );
-		return $this->standard_data_with_url_callback( 'tumblr', $user_data->value, $field_data['url_pattern'] );
-	}
-
-	/**
-	 * Vine
-	 */
-	function vine_cb( $user_data, $field_data ) {
-		return $this->standard_data_without_url_callback( 'vine', $user_data->value );
-		return $this->standard_data_with_url_callback( 'vine', $user_data->value, $field_data['url_pattern'] );
 	}
 }

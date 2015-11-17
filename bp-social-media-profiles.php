@@ -47,7 +47,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		$this->setup_hooks();
 
-		if ( is_super_admin() && ( is_admin() || is_network_admin() ) ) {
+		if ( is_admin() || is_network_admin() ) {
 			include( BP_SMP_PLUGIN_DIR . 'includes/admin.php' );
 			$this->admin = new BP_SMP_Admin;
 		}
@@ -244,7 +244,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		// URL patterns can be changed, so we first look to see if anything was saved by
 		// the user. If not found, we look in the "canonical" data.
-		if ( isset( $this->field_smp_data['url_pattern'] ) ) {
+		if ( isset( $this->field_smp_data['url_pattern'] ) && $this->field_smp_data['url_pattern'] != '' ) {
 			$url_pattern = $this->field_smp_data['url_pattern'];
 		} else if ( isset( $this->smp_site_data->sites[$current_site]['url_pattern'] ) ) {
 			$url_pattern = $this->smp_site_data->sites[$current_site]['url_pattern'];
@@ -370,8 +370,21 @@ class BP_Social_Media_Profiles extends BP_Component {
 				return;
 			}
 
+			// If the user hasn't supplied a URL pattern, check to make sure one hasn't been defined in the defaults
+			// If one has, pass it to the callback function
+			if ( !isset( $this->fieldmeta[$fielddata->field_id['url_pattern']] ) || $this->fieldmeta[$fielddata->field_id['url_pattern']] != '' ) {
+				if (  isset( $this->smp_site_data->sites[$site_id]['url_pattern'] ) && $this->smp_site_data->sites[$site_id]['url_pattern'] != '' ) {
+					$fieldmeta_to_use = array( 	'site' => $this->fieldmeta[$fielddata->field_id]['site'],
+												'url_pattern' => $this->smp_site_data->sites[$site_id]['url_pattern']
+											);
+				} else {
+					$fieldmeta_to_use = $this->fieldmeta[$fielddata->field_id];
+				}
+
+			}
+
 			// Run the callback
-			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
+			$smp_data = call_user_func_array( $callback, array( $fielddata, $fieldmeta_to_use ) );
 
 			// Apply a callback-specific filter
 			$smp_data = apply_filters( "bp_smp_" . $callback[1], $smp_data, $fielddata, $this->fieldmeta[$fielddata->field_id] );
@@ -416,9 +429,8 @@ class BP_Social_Media_Profiles extends BP_Component {
 					$content = isset( $smp_data['icon'] ) ? $this->create_image_html_from_smp_data( $smp_data ) : '';
 					break;
 			}
-
 			if ( !empty( $smp_data['url'] ) ) {
-				$html = '<a target="_blank" href="' . $smp_data['url'] . '" title="' . $smp_data['title'] . '">' . $content . '</a>';
+				$html = '<a href="' . $smp_data['url'] . '" target="_blank" title="' . $smp_data['title'] . '">' . $content . '</a>';
 			} else {
 				$html = $content;
 			}
@@ -542,7 +554,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 		}
 
 		$html .= '</div>';
-		return $html;
+		return apply_filters( 'bp_smp_display_markup', $html );
 	}
 
 	function admin_styles() {
